@@ -67,50 +67,50 @@ def dashboard():
         return redirect(url_for('login'))
     return render_template('dashboard.html')
 
+
 @app.route('/honorarios/retencion', methods=['POST'])
 def generar_con_retencion():
-    archivos = request.files.getlist("archivos")
-    integrador_base_path = os.path.join(os.path.dirname(__file__), 'file_informeMensualREC.xls')
-    df_integrador = pd.read_excel(integrador_base_path, dtype=str)
+    archivos = request.files.getlist('files')
+    integrador_path = os.path.join(os.path.dirname(__file__), 'Integrador honorarios-2.xlsx')
+    df_integrador = pd.read_excel(integrador_path)
 
     for archivo in archivos:
-        df = pd.read_excel(archivo, dtype=str)
+        df = pd.read_excel(archivo, skiprows=5)
         df.columns = df.columns.str.strip()
-        df_retencion = df[df['Retención'].astype(float) > 0].copy()
+        df = df.dropna(subset=["Fecha", "Retenido"])
+        df["Retenido"] = pd.to_numeric(df["Retenido"], errors="coerce").fillna(0)
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+        df["Periodo"] = df["Fecha"].dt.strftime("%Y%m")
+        df_ret = df[df["Retenido"] > 0]
+        df_integrador = pd.concat([df_integrador, df_ret], ignore_index=True)
 
-        # Corregir periodo a formato YYYYMM
-        df_retencion['Periodo'] = df_retencion['Fecha_doc'].str.extract(r'(\d{2})-(\d{2})-(\d{2})')
-        df_retencion['Periodo'] = '20' + df_retencion['Periodo'][2] + df_retencion['Periodo'][1]
-
-        df_integrador = pd.concat([df_integrador, df_retencion], ignore_index=True)
-
-    # Guardar archivo temporal
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xls")
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
     df_integrador.to_excel(temp_file.name, index=False)
-    temp_file.close()
-    return send_file(temp_file.name, as_attachment=True, download_name="integrador_actualizado.xls")
+    return send_file(temp_file.name, as_attachment=True, download_name="integrador_actualizado.xlsx")
 
 @app.route('/honorarios/sin-retencion', methods=['POST'])
 def depurar_sin_retencion():
-    archivos = request.files.getlist("archivos")
-    resultado_final = pd.DataFrame()
+    archivos = request.files.getlist('files')
+    df_final = pd.DataFrame()
 
     for archivo in archivos:
-        df = pd.read_excel(archivo, dtype=str)
+        df = pd.read_excel(archivo, skiprows=5)
         df.columns = df.columns.str.strip()
-        df_sin_ret = df[df['Retención'].astype(float) == 0].copy()
+        df = df.dropna(subset=["Fecha", "Retenido"])
+        df["Retenido"] = pd.to_numeric(df["Retenido"], errors="coerce").fillna(0)
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+        df["Periodo"] = df["Fecha"].dt.strftime("%Y%m")
+        df_sin_ret = df[df["Retenido"] == 0]
+        df_final = pd.concat([df_final, df_sin_ret], ignore_index=True)
 
-        # Ajustar periodo
-        df_sin_ret['Periodo'] = df_sin_ret['Fecha_doc'].str.extract(r'(\d{2})-(\d{2})-(\d{2})')
-        df_sin_ret['Periodo'] = '20' + df_sin_ret['Periodo'][2] + df_sin_ret['Periodo'][1]
+    df_final = df_final.sort_values(by="Fecha")
 
-        resultado_final = pd.concat([resultado_final, df_sin_ret], ignore_index=True)
-
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xls")
-    resultado_final.to_excel(temp_file.name, index=False)
-    temp_file.close()
-    return send_file(temp_file.name, as_attachment=True, download_name="honorarios_sin_retencion.xls")
-    
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+    df_final.to_excel(temp_file.name, index=False)
+    return send_file(temp_file.name, as_attachment=True, download_name="honorarios_sin_retencion.xlsx")
+   
 @app.route('/logout')
 def logout():
     session.clear()
