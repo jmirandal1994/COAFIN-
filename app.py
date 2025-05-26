@@ -9,9 +9,8 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__, static_url_path='/static')
-app.secret_key = os.urandom(24)  # Para sesiones
+app.secret_key = os.urandom(24)
 
-# Página principal con formulario
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if 'usuario' not in session:
@@ -41,22 +40,19 @@ def index():
 
     return render_template('index.html')
 
-# Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         usuario = request.form['usuario']
         password = request.form['password']
-
-        # Consultar Supabase por usuario Y contraseña
         resultado = supabase.table('usuarios').select('*').eq('usuario', usuario).eq('password', password).execute()
 
         if resultado.data:
             session['usuario'] = resultado.data[0]['usuario']
-            session['tipo'] = resultado.data[0].get('tipo_usuario', 'cliente')  # default es cliente
+            session['tipo'] = resultado.data[0].get('tipo_usuario', 'cliente')
 
             if session['tipo'] == 'admin':
-                return redirect('/panel-admin')
+                return redirect('/dashboard')
             else:
                 return redirect('/')
         else:
@@ -66,27 +62,15 @@ def login():
 
 @app.route('/dashboard')
 def dashboard():
-    # Asegúrate que el usuario esté logueado antes (opcional)
-    if 'usuario' not in session or session.get('tipo_usuario') != 'admin':
+    if 'usuario' not in session or session.get('tipo') != 'admin':
         return redirect(url_for('login'))
-
-    # Aquí podrías pasar datos reales si quieres
     return render_template('dashboard.html')
 
-# Logout
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login')
 
-# Panel de administración
-@app.route('/panel-admin')
-def panel_admin():
-    if session.get('tipo') != 'admin':
-        return redirect('/')
-    return "Bienvenido al panel de administración"
-
-# Favicon para evitar error
 @app.route('/favicon.ico')
 def favicon():
     return '', 204
