@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración - COAFIN</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fef9ff;
+      color: #333;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 240px;
+      background-color: #9f00c5;
+      color: white;
+      padding: 2rem 1rem;
+    }
+    .sidebar h2 {
+      margin-bottom: 2rem;
+    }
+    .sidebar a {
+      display: block;
+      padding: 0.8rem;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background-color: white;
+      color: #9f00c5;
+    }
+    .main {
+      margin-left: 260px;
+      padding: 2rem;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .section {
+      margin-top: 3rem;
+    }
+    .section h3 {
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .tag {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: white;
+    }
+    .pendiente { background: #ecc94b; color: #000; }
+    .devuelto { background: #f56565; }
+    .entregado { background: #48bb78; }
+    .enprogreso { background: #4299e1; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>COAFIN</h2>
+    <a href="#" class="active">Dashboard</a>
+    <a href="#">Clientes</a>
+    <a href="#">Ventas</a>
+    <a href="#">Ayuda</a>
+    <a href="#">Configuración</a>
+    <a href="/logout">Cerrar Sesión</a>
+  </div>
+  <div class="main">
+    <div class="cards">
+      <div class="card">
+        <h2>2,345</h2>
+        <p>Visitas</p>
+      </div>
+      <div class="card">
+        <h2>1,342</h2>
+        <p>Ventas</p>
+      </div>
+      <div class="card">
+        <h2>475</h2>
+        <p>Mensajes</p>
+      </div>
+      <div class="card">
+        <h2>$6,879</h2>
+        <p>Ganancias</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Órdenes Recientes</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Pago</th>
+            <th>Estatus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Laptop HP</td><td>$110</td><td>Pendiente</td><td><span class="tag pendiente">PENDIENTE</span></td></tr>
+          <tr><td>AirPods</td><td>$89</td><td>Pagado</td><td><span class="tag devuelto">DEVUELTO</span></td></tr>
+          <tr><td>PC Dell</td><td>$650</td><td>Pendiente</td><td><span class="tag enprogreso">EN PROGRESO</span></td></tr>
+          <tr><td>iPhone 14</td><td>$4,500</td><td>Pagado</td><td><span class="tag pendiente">PENDIENTE</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
