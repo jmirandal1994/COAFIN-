@@ -2,6 +2,7 @@ from flask import Flask, request, send_file, render_template, redirect, session,
 import pandas as pd
 from supabase import create_client, Client
 import os
+import tempfile
 
 # Configuración de Supabase
 SUPABASE_URL = 'https://iyskzhgjvchokwfxgqyc.supabase.co'
@@ -66,6 +67,50 @@ def dashboard():
         return redirect(url_for('login'))
     return render_template('dashboard.html')
 
+@app.route('/honorarios/retencion', methods=['POST'])
+def generar_con_retencion():
+    archivos = request.files.getlist("archivos")
+    integrador_base_path = os.path.join(os.path.dirname(__file__), 'file_informeMensualREC.xls')
+    df_integrador = pd.read_excel(integrador_base_path, dtype=str)
+
+    for archivo in archivos:
+        df = pd.read_excel(archivo, dtype=str)
+        df.columns = df.columns.str.strip()
+        df_retencion = df[df['Retención'].astype(float) > 0].copy()
+
+        # Corregir periodo a formato YYYYMM
+        df_retencion['Periodo'] = df_retencion['Fecha_doc'].str.extract(r'(\d{2})-(\d{2})-(\d{2})')
+        df_retencion['Periodo'] = '20' + df_retencion['Periodo'][2] + df_retencion['Periodo'][1]
+
+        df_integrador = pd.concat([df_integrador, df_retencion], ignore_index=True)
+
+    # Guardar archivo temporal
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xls")
+    df_integrador.to_excel(temp_file.name, index=False)
+    temp_file.close()
+    return send_file(temp_file.name, as_attachment=True, download_name="integrador_actualizado.xls")
+
+@app.route('/honorarios/sin-retencion', methods=['POST'])
+def depurar_sin_retencion():
+    archivos = request.files.getlist("archivos")
+    resultado_final = pd.DataFrame()
+
+    for archivo in archivos:
+        df = pd.read_excel(archivo, dtype=str)
+        df.columns = df.columns.str.strip()
+        df_sin_ret = df[df['Retención'].astype(float) == 0].copy()
+
+        # Ajustar periodo
+        df_sin_ret['Periodo'] = df_sin_ret['Fecha_doc'].str.extract(r'(\d{2})-(\d{2})-(\d{2})')
+        df_sin_ret['Periodo'] = '20' + df_sin_ret['Periodo'][2] + df_sin_ret['Periodo'][1]
+
+        resultado_final = pd.concat([resultado_final, df_sin_ret], ignore_index=True)
+
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xls")
+    resultado_final.to_excel(temp_file.name, index=False)
+    temp_file.close()
+    return send_file(temp_file.name, as_attachment=True, download_name="honorarios_sin_retencion.xls")
+    
 @app.route('/logout')
 def logout():
     session.clear()
