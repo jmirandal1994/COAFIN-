@@ -47,17 +47,20 @@ def login():
     if request.method == 'POST':
         usuario = request.form['usuario']
         password = request.form['password']
-        data = supabase.table("usuarios").select("*").eq("usuario", usuario).eq("password", password).execute()
 
-        if data.data:
-            session['usuario'] = usuario
-            session['tipo'] = data.data[0]['tipo_usuario']
+        # Consultar Supabase por usuario Y contraseña
+        resultado = supabase.table('usuarios').select('*').eq('usuario', usuario).eq('password', password).execute()
+
+        if resultado.data:
+            session['usuario'] = resultado.data[0]['usuario']
+            session['tipo'] = resultado.data[0].get('tipo_usuario', 'cliente')  # default es cliente
+
             if session['tipo'] == 'admin':
                 return redirect('/panel-admin')
             else:
                 return redirect('/')
         else:
-            return render_template('login.html', error="Usuario o contraseña incorrectos")
+            return render_template('login.html', error='Credenciales incorrectas')
 
     return render_template('login.html')
 
