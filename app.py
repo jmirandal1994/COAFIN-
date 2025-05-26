@@ -64,6 +64,15 @@ def login():
 
     return render_template('login.html')
 
+@app.route('/dashboard')
+def dashboard():
+    # Asegúrate que el usuario esté logueado antes (opcional)
+    if 'usuario' not in session or session.get('tipo_usuario') != 'admin':
+        return redirect(url_for('login'))
+
+    # Aquí podrías pasar datos reales si quieres
+    return render_template('dashboard.html')
+
 # Logout
 @app.route('/logout')
 def logout():
